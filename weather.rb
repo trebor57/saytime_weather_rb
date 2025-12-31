@@ -774,10 +774,10 @@ class WeatherScript
             condition_text = obs_data['properties']['textDescription'] || ''
             if condition_text && !condition_text.empty?
               condition = parse_nws_condition(condition_text)
-              # If we got condition from textDescription, we can stop (most reliable)
-              break if temp && condition
-            else
-              # If no textDescription, try icon field but don't break - let forecast override
+            end
+            
+            # If still no condition, try icon field as fallback
+            if !condition
               icon = obs_data['properties']['icon'] || ''
               if icon.include?('skc') || icon.include?('clear')
                 condition = 'Clear'
@@ -790,17 +790,16 @@ class WeatherScript
               end
             end
             
-            # Stop only if we have both temp and condition from textDescription
-            # If condition came from icon, continue to try forecast for better condition text
+            # Stop if we have both temp and condition
+            break if temp && condition
           end
         end
       end
     end
     
-    # Step 3: Always try forecast for condition if we don't have one from textDescription
-    # Prefer forecast over icon parsing since forecast has more detailed condition text (e.g., "Sunny" vs "Clear")
-    if temp && !condition
-      # No condition yet, try forecast
+    # Step 3: Fall back to forecast ONLY if current observations not available
+    # Use forecast only if observations didn't provide both temp and condition
+    unless temp && condition
       forecast_url = points_data['properties']['forecast']
       if forecast_url
         response = http_get(forecast_url, HTTP_TIMEOUT_LONG, 'WeatherBot/1.0 (saytime-weather@github.com)')
@@ -809,38 +808,13 @@ class WeatherScript
           if forecast_data && forecast_data['properties']
             periods = forecast_data['properties']['periods']
             if periods && periods.any?
-              # Use first period for condition
+              # Use first period as fallback only
               current = periods[0]
               if current
+                temp = current['temperature'] if !temp
                 condition_text = current['shortForecast'] || current['detailedForecast'] || ''
-                if condition_text && !condition_text.empty?
+                if condition_text && !condition_text.empty? && !condition
                   condition = parse_nws_condition(condition_text)
-                end
-              end
-            end
-          end
-        end
-      end
-    elsif temp && condition
-      # We have condition, but if it came from icon (generic "Clear"), prefer forecast if available
-      # Check if condition is a generic icon-based one that forecast could improve
-      if condition == 'Clear'
-        forecast_url = points_data['properties']['forecast']
-        if forecast_url
-          response = http_get(forecast_url, HTTP_TIMEOUT_LONG, 'WeatherBot/1.0 (saytime-weather@github.com)')
-          if response
-            forecast_data = safe_decode_json(response)
-            if forecast_data && forecast_data['properties']
-              periods = forecast_data['properties']['periods']
-              if periods && periods.any?
-                current = periods[0]
-                if current
-                  condition_text = current['shortForecast'] || current['detailedForecast'] || ''
-                  if condition_text && !condition_text.empty?
-                    forecast_condition = parse_nws_condition(condition_text)
-                    # Use forecast if it's more specific than "Clear"
-                    condition = forecast_condition if forecast_condition != 'Clear'
-                  end
                 end
               end
             end
