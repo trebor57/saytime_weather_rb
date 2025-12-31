@@ -5,9 +5,12 @@ debian/files
 debian/substvars
 debian/*.debhelper.log
 debian/*.substvars
+debian/debhelper-build-stamp
 *.deb
 *.dsc
 *.tar.gz
+*.buildinfo
+*.changes
 *.buildinfo
 *.changes
 
