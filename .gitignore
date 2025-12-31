@@ -11,8 +11,6 @@ debian/debhelper-build-stamp
 *.tar.gz
 *.buildinfo
 *.changes
-*.buildinfo
-*.changes
 
 # Ruby
 *.gem
