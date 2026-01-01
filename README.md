@@ -88,6 +88,15 @@ same => n,Hangup()
 0 6-23 * * * /usr/sbin/saytime.rb -l 75001 -n 123456
 ```
 
+## Migration from weather.pl
+
+If you're using supermon-ng or other scripts that call `weather.pl`, update them to use `weather.rb`:
+
+```bash
+# Update supermon-ng integration
+sudo sed -i 's/weather\.pl/weather.rb/g' /var/www/html/supermon-ng/user_files/sbin/ast_node_status_update.py
+```
+
 ## Links
 
 - **Homepage**: https://github.com/hardenedpenguin/saytime_weather_rb
