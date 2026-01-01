@@ -93,7 +93,6 @@ same => n,Hangup()
 If you're using supermon-ng or other scripts that call `weather.pl`, update them to use `weather.rb`:
 
 ```bash
-# Update supermon-ng integration
 sudo sed -i 's/weather\.pl/weather.rb/g' /var/www/html/supermon-ng/user_files/sbin/ast_node_status_update.py
 ```
 
