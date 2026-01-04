@@ -248,38 +248,46 @@ class SaytimeScript
   end
 
   def get_current_time(location_id)
-    # Check if weather.rb saved a timezone file
-    if location_id
+    timezone = nil
+    
+    # Priority 1: Check TZ environment variable (allows users to override with UTC, etc.)
+    if ENV['TZ'] && !ENV['TZ'].empty?
+      timezone = ENV['TZ'].strip
+    # Priority 2: Check if weather.rb saved a timezone file
+    elsif location_id
       timezone_file = tmp_file('timezone')
       if File.exist?(timezone_file)
         begin
           timezone = File.read(timezone_file).strip
-          if timezone && !timezone.empty?
-            # Use system's date command to get hour and minute in specified timezone
-            begin
-              # Get hour, minute, and second from the timezone-aware date command
-              time_parts = `TZ='#{timezone}' date +"%H %M %S"`.strip
-              if $?.success? && !time_parts.empty?
-                parts = time_parts.split.map(&:to_i)
-                if parts.length >= 2
-                  hour, minute, second = parts[0], parts[1], (parts[2] || 0)
-                  # Get current date (we only care about time for announcements)
-                  now = Time.now
-                  # Create a Time object with the timezone-specific hour and minute
-                  # Note: This creates a local time object, but with the correct hour/minute
-                  time = Time.new(now.year, now.month, now.day, hour, minute, second)
-                  return time
-                end
-              end
-            rescue => e
-              # Fall through to system local time
-            end
-          end
         rescue => e
           # Fall through to system local time
         end
       end
     end
+    
+    # Use timezone if we have one
+    if timezone && !timezone.empty?
+      begin
+        # Use system's date command to get hour and minute in specified timezone
+        time_parts = `TZ='#{timezone}' date +"%H %M %S"`.strip
+        if $?.success? && !time_parts.empty?
+          parts = time_parts.split.map(&:to_i)
+          if parts.length >= 2
+            hour, minute, second = parts[0], parts[1], (parts[2] || 0)
+            # Get current date (we only care about time for announcements)
+            now = Time.now
+            # Create a Time object with the timezone-specific hour and minute
+            # Note: This creates a local time object, but with the correct hour/minute
+            time = Time.new(now.year, now.month, now.day, hour, minute, second)
+            return time
+          end
+        end
+      rescue => e
+        # Fall through to system local time
+      end
+    end
+    
+    # Fall back to system local time
     Time.now
   end
 
