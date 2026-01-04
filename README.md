@@ -63,11 +63,14 @@ Examples:
 sudo /usr/sbin/saytime.rb -l 75001 -n 123456       # Basic announcement
 sudo /usr/sbin/saytime.rb -l 75001 -n 123456 -u    # 24-hour format
 sudo /usr/sbin/saytime.rb -l 75001 -n 123456 --no-weather  # Time only
+TZ=UTC /usr/sbin/saytime.rb -l 75001 -n 123456 --no-weather  # UTC time
 ```
 
 Required: `-l, --location_id=ID`, `-n, --node_number=NUM`
 
 Common options: `-u, --use_24hour`, `-d, --default-country CC`, `-v, --verbose`, `--dry-run`, `--no-weather`
+
+**Timezone:** The script uses the location's timezone from weather data. You can override this by setting the `TZ` environment variable (e.g., `TZ=UTC` for UTC time, `TZ=Europe/London` for London time).
 
 Run with `--help` for complete option list.
 
