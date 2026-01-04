@@ -341,13 +341,13 @@ class WeatherScript
     
     # Priority order for matching:
     # 1. Try full condition text (with spaces as hyphens, underscores, or removed)
-    # 2. Try individual words, prioritizing important weather words
+    # 2. Try individual words (preserve original order for multi-word conditions)
     # 3. Try pattern matching
     # 4. Fall back to defaults
     
     # Important weather words (prioritize these over modifiers like "light", "heavy")
-    important_words = %w[snow rain thunderstorm hail sleet fog drizzle showers cloudy overcast]
-    modifiers = %w[light heavy freezing]
+    important_words = %w[snow rain thunderstorm hail sleet fog drizzle showers cloudy overcast sunny clear]
+    modifiers = %w[light heavy freezing mostly partly]
     
     # Try full condition text variations
     [condition_lower, condition_lower.gsub(/\s+/, '-'), condition_lower.gsub(/\s+/, '_'), condition_lower.gsub(/\s+/, '')].each do |variant|
@@ -358,15 +358,13 @@ class WeatherScript
       end
     end
     
-    # If no full match, try individual words (prioritize important words)
+    # If no full match, try individual words (preserve original order for multi-word conditions)
     if condition_files.empty?
       words = condition_lower.split(/\s+/).reject(&:empty?)
-      sorted_words = words.sort_by { |w| important_words.include?(w) ? 0 : (modifiers.include?(w) ? 1 : 2) }
-      sorted_words.each do |word|
+      words.each do |word|
         file = "#{WEATHER_SOUND_DIR}/#{word}.ulaw"
         if File.exist?(file)
           condition_files << file
-          break
         end
       end
     end
