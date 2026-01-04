@@ -1,3 +1,17 @@
+saytime-weather-rb (0.0.2-1) unstable; urgency=medium
+
+  * Fix multi-word weather condition handling in weather.rb
+    - Fixed issue where conditions like "Mostly Sunny" only announced the first word
+    - Now properly collects and concatenates all matching word sound files
+    - Preserves original word order for correct pronunciation
+  * Add TZ environment variable support for timezone override
+    - Users can now override timezone by setting TZ environment variable
+    - TZ takes precedence over weather.rb timezone and system local time
+    - Useful for UTC time announcements or custom timezone requirements
+    - Example: TZ=UTC saytime.rb -l 75001 -n 123456
+
+ -- Jory A. Pratt <geekypenguin@gmail.com>  Sun, 04 Jan 2026 10:46:26 -0600
+
 saytime-weather-rb (0.0.1-1) unstable; urgency=medium
 
   * Initial Debian package release
