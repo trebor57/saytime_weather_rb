@@ -14,7 +14,7 @@ require 'json'
 require 'optparse'
 require 'tempfile'
 
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 TMP_DIR = '/tmp'
 TEMP_FILE = '/tmp/temperature'
 COND_FILE = '/tmp/condition.ulaw'

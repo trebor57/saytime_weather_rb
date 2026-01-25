@@ -1,3 +1,14 @@
+saytime-weather-rb (0.0.5-1) unstable; urgency=medium
+
+  * weather.rb: Fix NoMethodError when using airport codes with additional weather data
+    - Fixed bug where using IATA/ICAO airport codes with show_humidity, show_wind,
+      show_pressure, or show_precipitation enabled would cause a NoMethodError
+    - Moved weather_data initialization before first use to ensure it's always a hash
+    - METAR data (airport codes) doesn't provide additional weather fields, but code
+      now safely handles missing fields without errors
+
+ -- Jory A. Pratt <geekypenguin@gmail.com>  Sun, 25 Jan 2026 12:15:09 -0600
+
 saytime-weather-rb (0.0.4-1) unstable; urgency=medium
 
   * weather.rb: Add IATA airport code support
