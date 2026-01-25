@@ -14,8 +14,29 @@ A Ruby implementation of a time and weather announcement system for Asterisk PBX
 
 ```bash
 cd /tmp
-wget https://github.com/hardenedpenguin/saytime_weather_rb/releases/download/v0.0.3/saytime-weather-rb_0.0.3-1_all.deb
-sudo apt install ./saytime-weather-rb_0.0.3-1_all.deb
+wget https://github.com/hardenedpenguin/saytime_weather_rb/releases/download/v0.0.4/saytime-weather-rb_0.0.4-1_all.deb
+sudo apt install ./saytime-weather-rb_0.0.4-1_all.deb
+```
+
+## Upgrading
+
+When upgrading from a previous version:
+
+> **⚠️ IMPORTANT:** The `/etc/asterisk/local/weather.ini` configuration file is **not automatically updated** during package upgrades. If new configuration options are added in a new release, you will need to manually add them to your existing `weather.ini` file.
+
+To add new options:
+1. Check the default configuration file at `/usr/share/saytime-weather-rb/weather.ini` for new options
+2. Compare with your existing `/etc/asterisk/local/weather.ini`
+3. Add any missing options to your configuration file
+
+Example: If upgrading to version 0.0.4, you may want to add the new weather data options:
+```ini
+show_precipitation = NO
+show_wind = NO
+show_pressure = NO
+show_humidity = NO
+show_zero_precip = NO
+precip_trace_mm = 0.10
 ```
 
 ## Configuration
