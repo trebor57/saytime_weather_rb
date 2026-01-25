@@ -354,6 +354,10 @@ class WeatherScript
     # Build output string
     output_parts = ["#{temp_f_display}°F, #{temp_c}°C"]
     
+    # Initialize weather_data early for use in all sections
+    temp_mode = @config['Temperature_mode']
+    weather_data = @weather_data || {}
+    
     # Humidity (shown early, before condition)
     if @config['show_humidity'] == 'YES' && weather_data[:humidity]
       humidity_val = weather_data[:humidity]
@@ -365,8 +369,6 @@ class WeatherScript
     output_parts << condition
     
     # Add additional data based on config and F/C mode
-    temp_mode = @config['Temperature_mode']
-    weather_data = @weather_data || {}
     
     # Precipitation
     if @config['show_precipitation'] == 'YES' && weather_data[:precipitation]
@@ -1158,15 +1160,58 @@ class WeatherScript
             end
             
             if @config['show_wind'] == 'YES'
-              # NWS provides wind speed in m/s
-              ws = props['windSpeed'] && props['windSpeed']['value']
-              wind_speed = ws if ws && ws.is_a?(Numeric)
+              # NWS provides wind speed with unitCode - check the unit
+              ws_obj = props['windSpeed']
+              if ws_obj && ws_obj['value'] && ws_obj['value'].is_a?(Numeric)
+                ws_value = ws_obj['value']
+                unit_code = (ws_obj['unitCode'] || '').downcase
+                
+                # Convert to m/s based on unitCode
+                # Common NWS unitCodes: "wmoUnit:m_s-1" (m/s), "wmoUnit:km_h-1" (km/h), "wmoUnit:mi_h-1" (mph), "wmoUnit:kt" (knots)
+                # Also check for "unit:" prefix variations
+                if unit_code.include?('mi_h') || unit_code.include?('mph') || unit_code.include?('mile')
+                  # Already in mph, convert to m/s
+                  wind_speed = ws_value / 2.23694
+                elsif unit_code.include?('km_h') || unit_code.include?('kmh') || unit_code.include?('kilometer')
+                  # In km/h, convert to m/s
+                  wind_speed = ws_value / 3.6
+                elsif unit_code.include?('kt') || unit_code.include?('knot')
+                  # In knots, convert to m/s (1 knot = 0.514444 m/s)
+                  wind_speed = ws_value * 0.514444
+                elsif unit_code.include?('m_s') || unit_code.include?('meter') || unit_code.empty?
+                  # Already in m/s, or empty unitCode (default to m/s for NWS)
+                  wind_speed = ws_value
+                else
+                  # Unknown unitCode - default to m/s (most common for NWS)
+                  # Log a warning in verbose mode if unitCode is present but unrecognized
+                  if @options[:verbose] && !unit_code.empty?
+                    warn("Unknown wind speed unitCode: #{ws_obj['unitCode']}, assuming m/s")
+                  end
+                  wind_speed = ws_value
+                end
+              end
               
               wd = props['windDirection'] && props['windDirection']['value']
               wind_direction = wd if wd && wd.is_a?(Numeric)
               
-              wg = props['windGust'] && props['windGust']['value']
-              wind_gusts = wg if wg && wg.is_a?(Numeric)
+              wg_obj = props['windGust']
+              if wg_obj && wg_obj['value'] && wg_obj['value'].is_a?(Numeric)
+                wg_value = wg_obj['value']
+                wg_unit_code = wg_obj['unitCode'] || ''
+                
+                # Convert gusts to m/s based on unitCode
+                if wg_unit_code.include?('mi_h-1') || wg_unit_code.include?('mph')
+                  wind_gusts = wg_value / 2.23694
+                elsif wg_unit_code.include?('km_h-1') || wg_unit_code.include?('kmh')
+                  wind_gusts = wg_value / 3.6
+                elsif wg_unit_code.include?('kt') || wg_unit_code.include?('knot')
+                  wind_gusts = wg_value * 0.514444
+                elsif wg_unit_code.include?('m_s-1') || wg_unit_code.include?('ms')
+                  wind_gusts = wg_value
+                else
+                  wind_gusts = wg_value
+                end
+              end
             end
             
             if @config['show_pressure'] == 'YES'
